@@ -1,0 +1,12 @@
+              precision    recall  f1-score   support
+
+  Not Sexist       0.89      0.80      0.84      3030
+      Sexist       0.53      0.69      0.60       970
+
+    accuracy                           0.78      4000
+   macro avg       0.71      0.75      0.72      4000
+weighted avg       0.80      0.78      0.78      4000
+
+Confusion Matrix:
+[[2430  600]
+ [ 297  673]]
