@@ -1,5 +1,6 @@
 import streamlit as st
 import time
+import io
 
 from src.ui import inject_css, show_results
 from src.models import MODEL_CONFIGS, load_selected_model, analyze_with_sliding_window
@@ -24,10 +25,13 @@ _init_state('selected_model_name', list(MODEL_CONFIGS.keys())[0])
 _init_state('model_obj', None)
 _init_state('tokenizer_obj', None)
 _init_state('model_loaded', False)
-_init_state('audio_transcribed_text', "")
+_init_state('input_method', 'Text')
+_init_state('audio_bytes', None)
+_init_state('audio_transcribed_text', '')
 _init_state('audio_last_filename', None)
 _init_state('audio_result', None)
-_init_state('video_transcribed_text', "")
+_init_state('video_bytes', None)
+_init_state('video_transcribed_text', '')
 _init_state('video_last_filename', None)
 _init_state('video_result', None)
 _init_state('text_result', None)
@@ -62,6 +66,20 @@ def load_model_for_selection(model_name):
             st.session_state.model_loaded = False
 
     return st.session_state.model_loaded
+
+
+def clear_audio_state():
+    st.session_state.audio_transcribed_text = ''
+    st.session_state.audio_result = None
+    st.session_state.audio_last_filename = None
+    st.session_state.audio_bytes = None
+
+
+def clear_video_state():
+    st.session_state.video_transcribed_text = ''
+    st.session_state.video_result = None
+    st.session_state.video_last_filename = None
+    st.session_state.video_bytes = None
 
 
 def main():
@@ -103,12 +121,21 @@ def main():
     model_type = MODEL_CONFIGS[model_name]["type"]
 
     st.markdown('<p class="section-label">Input Method</p>', unsafe_allow_html=True)
+
+    prev_method = st.session_state.input_method
     input_method = st.radio(
         "Input",
         ["Text", "Audio", "Video"],
+        index=["Text", "Audio", "Video"].index(st.session_state.input_method),
         horizontal=True,
         label_visibility="collapsed"
     )
+
+    if input_method != prev_method:
+        st.session_state.input_method = input_method
+        st.session_state.text_result = None
+        st.session_state.audio_result = None
+        st.session_state.video_result = None
 
     if input_method == "Text":
         text_to_analyze = st.text_area(
@@ -140,19 +167,31 @@ def main():
         if audio_file is not None:
             current_name = audio_file.name
             if st.session_state.audio_last_filename != current_name:
-                st.session_state.audio_transcribed_text = ""
+                raw_bytes = audio_file.read()
+                st.session_state.audio_bytes = raw_bytes
+                st.session_state.audio_transcribed_text = ''
                 st.session_state.audio_result = None
                 st.session_state.audio_last_filename = current_name
 
-            st.audio(audio_file)
-            if st.button("Transcribe Audio", type="primary", use_container_width=True):
-                transcribed, success = transcribe_audio_with_progress(audio_file)
-                if success:
-                    st.session_state.audio_transcribed_text = transcribed
-                    st.session_state.audio_result = None
-                    st.success("Audio transcribed successfully!")
-                else:
-                    st.error(transcribed)
+            if st.session_state.audio_bytes:
+                st.audio(st.session_state.audio_bytes)
+
+            col_btn, col_clear = st.columns([4, 1])
+            with col_btn:
+                if st.button("Transcribe Audio", type="primary", use_container_width=True):
+                    fake_file = io.BytesIO(st.session_state.audio_bytes)
+                    fake_file.name = current_name
+                    transcribed, success = transcribe_audio_with_progress(fake_file)
+                    if success:
+                        st.session_state.audio_transcribed_text = transcribed
+                        st.session_state.audio_result = None
+                        st.success("Audio transcribed successfully!")
+                    else:
+                        st.error(transcribed)
+            with col_clear:
+                if st.button("Clear", use_container_width=True, key="audio_clear"):
+                    clear_audio_state()
+                    st.rerun()
 
         if st.session_state.audio_transcribed_text:
             st.markdown("<p style='text-align:left;'><strong>Transcription:</strong></p>", unsafe_allow_html=True)
@@ -185,19 +224,31 @@ def main():
         if video_file is not None:
             current_name = video_file.name
             if st.session_state.video_last_filename != current_name:
-                st.session_state.video_transcribed_text = ""
+                raw_bytes = video_file.read()
+                st.session_state.video_bytes = raw_bytes
+                st.session_state.video_transcribed_text = ''
                 st.session_state.video_result = None
                 st.session_state.video_last_filename = current_name
 
-            st.video(video_file)
-            if st.button("Transcribe Video", type="primary", use_container_width=True):
-                transcribed, success = transcribe_video_with_progress(video_file)
-                if success:
-                    st.session_state.video_transcribed_text = transcribed
-                    st.session_state.video_result = None
-                    st.success("Video transcribed successfully!")
-                else:
-                    st.error(transcribed)
+            if st.session_state.video_bytes:
+                st.video(st.session_state.video_bytes)
+
+            col_btn, col_clear = st.columns([4, 1])
+            with col_btn:
+                if st.button("Transcribe Video", type="primary", use_container_width=True):
+                    fake_file = io.BytesIO(st.session_state.video_bytes)
+                    fake_file.name = current_name
+                    transcribed, success = transcribe_video_with_progress(fake_file)
+                    if success:
+                        st.session_state.video_transcribed_text = transcribed
+                        st.session_state.video_result = None
+                        st.success("Video transcribed successfully!")
+                    else:
+                        st.error(transcribed)
+            with col_clear:
+                if st.button("Clear", use_container_width=True, key="video_clear"):
+                    clear_video_state()
+                    st.rerun()
 
         if st.session_state.video_transcribed_text:
             st.markdown("<p style='text-align:left;'><strong>Transcription:</strong></p>", unsafe_allow_html=True)

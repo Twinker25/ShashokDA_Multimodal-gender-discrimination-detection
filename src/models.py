@@ -10,25 +10,30 @@ from src.utils import (
 )
 
 MODEL_CONFIGS = {
-    "LSTM - DDET": {
-        "type": "lstm",
-        "model_path": "models/lstm_ddet/sexism_model.h5",
-        "tokenizer_path": "models/lstm_ddet/tokenizer.pickle",
-    },
-    "LSTM - DSMB": {
+    "LSTM — Dataset 1 (balanced)": {
         "type": "lstm",
         "model_path": "models/lstm_dsmb/sexism_model.h5",
         "tokenizer_path": "models/lstm_dsmb/tokenizer.pickle",
     },
-    "RoBERTa - DDET": {
+    "LSTM — Dataset 4 (original)": {
+        "type": "lstm",
+        "model_path": "models/lstm_ddet/sexism_model.h5",
+        "tokenizer_path": "models/lstm_ddet/tokenizer.pickle",
+    },
+    "RoBERTa — Dataset 1 (balanced)": {
+        "type": "roberta",
+        "model_path": "models/roberta_dsmb",
+        "tokenizer_path": "models/roberta_dsmb",
+    },
+    "RoBERTa — Dataset 4 (original)": {
         "type": "roberta",
         "model_path": "models/roberta_ddet",
         "tokenizer_path": "models/roberta_ddet",
     },
-    "RoBERTa - DSMB": {
+    "RoBERTa — Dataset 4 (augmented)": {
         "type": "roberta",
-        "model_path": "models/roberta_dsmb",
-        "tokenizer_path": "models/roberta_dsmb",
+        "model_path": "models/roberta_ddet_augmented",
+        "tokenizer_path": "models/roberta_ddet_augmented",
     },
 }
 
