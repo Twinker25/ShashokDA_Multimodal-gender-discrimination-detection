@@ -26,6 +26,7 @@ _init_state('model_obj', None)
 _init_state('tokenizer_obj', None)
 _init_state('model_loaded', False)
 _init_state('input_method', 'Text')
+_init_state('prev_input_method', 'Text')
 _init_state('audio_bytes', None)
 _init_state('audio_transcribed_text', '')
 _init_state('audio_last_filename', None)
@@ -122,17 +123,17 @@ def main():
 
     st.markdown('<p class="section-label">Input Method</p>', unsafe_allow_html=True)
 
-    prev_method = st.session_state.input_method
-    input_method = st.radio(
+    st.radio(
         "Input",
         ["Text", "Audio", "Video"],
-        index=["Text", "Audio", "Video"].index(st.session_state.input_method),
         horizontal=True,
-        label_visibility="collapsed"
+        label_visibility="collapsed",
+        key="input_method"
     )
+    input_method = st.session_state.input_method
 
-    if input_method != prev_method:
-        st.session_state.input_method = input_method
+    if input_method != st.session_state.prev_input_method:
+        st.session_state.prev_input_method = input_method
         st.session_state.text_result = None
         st.session_state.audio_result = None
         st.session_state.video_result = None

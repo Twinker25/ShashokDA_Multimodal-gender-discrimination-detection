@@ -10,27 +10,27 @@ from src.utils import (
 )
 
 MODEL_CONFIGS = {
-    "LSTM — Dataset 1 (balanced)": {
+    "LSTM - Dataset SSMB": {
         "type": "lstm",
         "model_path": "models/lstm_dsmb/sexism_model.h5",
         "tokenizer_path": "models/lstm_dsmb/tokenizer.pickle",
     },
-    "LSTM — Dataset 4 (original)": {
+    "LSTM - Dataset SDET": {
         "type": "lstm",
         "model_path": "models/lstm_ddet/sexism_model.h5",
         "tokenizer_path": "models/lstm_ddet/tokenizer.pickle",
     },
-    "RoBERTa — Dataset 1 (balanced)": {
+    "RoBERTa - Dataset SSMB": {
         "type": "roberta",
         "model_path": "models/roberta_dsmb",
         "tokenizer_path": "models/roberta_dsmb",
     },
-    "RoBERTa — Dataset 4 (original)": {
+    "RoBERTa - Dataset SDET": {
         "type": "roberta",
         "model_path": "models/roberta_ddet",
         "tokenizer_path": "models/roberta_ddet",
     },
-    "RoBERTa — Dataset 4 (augmented)": {
+    "RoBERTa - Dataset SDET(augmented)": {
         "type": "roberta",
         "model_path": "models/roberta_ddet_augmented",
         "tokenizer_path": "models/roberta_ddet_augmented",
