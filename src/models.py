@@ -10,15 +10,15 @@ from src.utils import (
 )
 
 MODEL_CONFIGS = {
-    "LSTM - Dataset SSMB": {
-        "type": "lstm",
-        "model_path": "models/lstm_dsmb/sexism_model.h5",
-        "tokenizer_path": "models/lstm_dsmb/tokenizer.pickle",
+    "BiLSTM - Dataset SSMB": {
+        "type": "bilstm",
+        "model_path": "models/bilstm_dsmb/sexism_model.h5",
+        "tokenizer_path": "models/bilstm_dsmb/tokenizer.pickle",
     },
-    "LSTM - Dataset SDET": {
-        "type": "lstm",
-        "model_path": "models/lstm_ddet/sexism_model.h5",
-        "tokenizer_path": "models/lstm_ddet/tokenizer.pickle",
+    "BiLSTM - Dataset SDET": {
+        "type": "bilstm",
+        "model_path": "models/bilstm_ddet/sexism_model.h5",
+        "tokenizer_path": "models/bilstm_ddet/tokenizer.pickle",
     },
     "RoBERTa - Dataset SSMB": {
         "type": "roberta",
@@ -52,17 +52,18 @@ def load_lstm(model_path, tokenizer_path):
 @st.cache_resource
 def load_roberta(model_path):
     try:
-        from transformers import RobertaTokenizer, TFRobertaForSequenceClassification
-        tokenizer = RobertaTokenizer.from_pretrained(model_path)
-        model = TFRobertaForSequenceClassification.from_pretrained(model_path)
+        from transformers import AutoTokenizer, RobertaForSequenceClassification
+        tokenizer = AutoTokenizer.from_pretrained('roberta-base')
+        model = RobertaForSequenceClassification.from_pretrained(model_path)
         return model, tokenizer, True
-    except Exception:
+    except Exception as e:
+        print(f"Error loading RoBERTa: {e}")
         return None, None, False
 
 
 def load_selected_model(model_name):
     cfg = MODEL_CONFIGS[model_name]
-    if cfg["type"] == "lstm":
+    if cfg["type"] == "bilstm":
         return load_lstm(cfg["model_path"], cfg["tokenizer_path"])
     return load_roberta(cfg["model_path"])
 
@@ -72,22 +73,23 @@ def predict_lstm(text, model, tokenizer):
     return float(model.predict(padded, verbose=0)[0][0])
 
 
-def predict_roberta(text, model, tokenizer, max_len=512):
+def predict_roberta(text, model, tokenizer, max_len=128):
+    import torch
     inputs = tokenizer(
         text,
-        return_tensors="tf",
+        return_tensors="pt",
         truncation=True,
         max_length=max_len,
         padding="max_length"
     )
-    logits = model(inputs).logits
-    import tensorflow as tf
-    probs = tf.nn.softmax(logits, axis=-1).numpy()[0]
+    with torch.no_grad():
+        logits = model(**inputs).logits
+        probs = torch.nn.functional.softmax(logits, dim=-1).numpy()[0]
     return float(probs[1])
 
 
 def predict_single(text, model, tokenizer, model_type):
-    if model_type == "lstm":
+    if model_type == "bilstm":
         return predict_lstm(text, model, tokenizer)
     return predict_roberta(text, model, tokenizer)
 
